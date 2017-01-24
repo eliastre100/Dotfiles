@@ -1,0 +1,44 @@
+#!/usr/bin/php
+<?php
+
+function insert_header($argv)
+{
+	$date = date("D M d H:i:s Y");
+	$header = "/*\n** $argv[2] for $argv[3] in $argv[1]\n**\n** Made by $argv[5]\n** Login   <$argv[4]>\n**\n** Started on  $date $argv[5]\n** Last update $date $argv[5]\n*/\n\n";
+	$context = stream_context_create();
+	$file = fopen($argv[1], 'r', 1, $context);
+	$tmpname = "/tmp/".md5($header);
+	file_put_contents($tmpname, $header);
+	file_put_contents($tmpname, $file, FILE_APPEND);
+	fclose($file);
+	unlink($argv[1]);
+	rename($tmpname, $argv[1]);
+}
+
+function check_header($path)
+{
+	$pattern = "/^\/\*\n\*\* .* for .* in .*\n\*\*\n\*\* Made by .*\n\*\* Login   <.*>\n\*\*\n\*\* Started on  .*\n\*\* Last update .*\n\*\/\n/";
+	return preg_match($pattern, file_get_contents($path));
+}
+
+function update_header($path, $name)
+{
+	$file = file($path);
+	$date = date("D M d H:i:s Y");
+	$file[7] = "** Last update $date $name\n";
+	$tmpname = "/tmp/".md5($path);
+	file_put_contents($tmpname, $file);
+	unlink($path);
+	rename($tmpname, $path);
+}
+
+if ($argc != 6)
+{
+	error_log("Please run this tool on a file (wrong argument number want 6 have $argc)", 0);
+	return (1);
+}
+
+if (check_header($argv[1]) == 1)
+	update_header($argv[1], $argv[5]);
+else
+	insert_header($argv);
