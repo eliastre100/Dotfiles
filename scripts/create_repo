@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo -n "Password:"
+read -s password
+echo
+
+echo $password | blih repository create $1
+echo $password | blih repository setacl $1 ramassage-tek r
+echo $password | blih repository getacl $1
