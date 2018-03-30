@@ -28,6 +28,13 @@ if [ $? -ne 0 ]; then
 	echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list >> dump.log
 fi
 
+# Setup yarn repositories
+ls /etc/apt/sources.list.d/yarn.list &> /dev/null
+if [ $? -ne 0 ]; then
+	curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+	echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+fi
+
 # Install packets from repositories
 echo "Updating repositories"
 apt -y update
@@ -45,7 +52,8 @@ apt -y install git \
 	ruby-build \
 	apt-transport-https \
 	sublime-text \
-	cmdtest
+	libappindicator1 \
+	yarn
 
 echo "Installing rbenv"
 git clone https://github.com/rbenv/rbenv.git ~/.rbenv
@@ -56,8 +64,35 @@ echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.zshrc
 echo "Installing nvm"
 wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
 
+
+echo "Installing Docker"
+wget -qO- https://get.docker.com  | sh
+usermod -aG docker $USER
+
+echo "Configuring GIT"
+git config --global push.default simple
+git config --global user.name "Antoine FORET"
+git config --global user.email "antoine.foret@epitech.eu"
+
+echo "Configuring shell"
+chsh $USER -s /bin/zsh
+
+
+# Non default packages
+
+mkdir -p /tools
+
+ls /tools/RubyMine-2017.3.3 &> /dev/null
+if [ $? -ne 0 ]; then
+	echo "Installing RubyMine"
+	wget -O /tmp/rubymine.tar.gz https://download.jetbrains.com/ruby/RubyMine-2017.3.3.tar.gz
+	tar -xvf /tmp/rubymine.tar.gz -C /tools
+fi
+
 echo "Installing MailSpring"
 wget -O /tmp/mailspring.deb https://updates.getmailspring.com/download?platform=linuxDeb
 dpkg -i /tmp/mailspring.deb
 
 apt -y -f install
+
+echo "Please run JetBrains tools from /tools in order to activate them."
